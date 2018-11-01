@@ -11,8 +11,8 @@ y_max = 2
 y_min = 0
 nx = 101
 ny = 101
-dx = (abs(x_max) + abs(x_min)) / (nx-1)
-dy = (abs(y_max) + abs(y_min)) / (ny-1)
+dx = (x_max - x_min) / (nx-1)
+dy = (y_max - y_min) / (ny-1)
 
 #Create arrays
 x = np.zeros(nx)
@@ -21,16 +21,20 @@ y = np.zeros(nx)
 y_temp = np.zeros(nx)
 u = np.zeros((ny,nx))
 u_temp = np.zeros((ny,nx))
+u_initial = np.zeros((ny,nx))
 
 #Populate arrays
 x = np.linspace(x_min,x_max,num=nx)
 y = np.linspace(y_min,y_max,num=ny)
 
+#IC's
 for i in range(0,nx):
-    u[i][0] = 1
+    u[i][0] = (x[i] - 1) ** 2
 
 for j in range(0,ny):
-    u[0][j] = 2
+    u[0][j] = (y[j] - 1) ** 2
+
+u_initial = u.copy()
 
 #Iterate
 for i in range(1,nx):
