@@ -58,10 +58,10 @@ for n in range(1,nt):
             (((vis * dt) / (dy) ** 2) * (u_temp[i][j + 1] - 2 * u_temp[i][j]
              + u_temp[i][j - 1])))
 
-            #v_i[i][j] = (v_temp[i][j] + (((vis * dt) / dx **2) *
-            #(v_temp[i + 1][j] - (2 * v_temp[i][j]) + v_temp[i - 1][j])) +
-            #(((vis * dt) / dy ** 2) * (v_temp[i][j + 1] - (2 * v_temp[i][j])
-            #+ v_temp[i][j - 1])))
+            v_i[i][j] = (v_temp[i][j] + (((vis * dt) / dx **2) *
+            (v_temp[i + 1][j] - (2 * v_temp[i][j]) + v_temp[i - 1][j])) +
+            (((vis * dt) / dy ** 2) * (v_temp[i][j + 1] - (2 * v_temp[i][j])
+            + v_temp[i][j - 1])))
 
             #u_temp[0, :] = 1
             #u_temp[-1, :] = 1
