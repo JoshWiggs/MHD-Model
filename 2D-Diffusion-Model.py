@@ -72,8 +72,12 @@ for n in range(1,nt):
     u[n] = u_i.copy()
     v[n] = v_i.copy()
 
-#Plotting - 3D with z = velocity domain
-fig = plt.figure(figsize=(11, 7), dpi=100)
-ax = fig.gca(projection='3d')
+#Meshgrid
 X, Y = np.meshgrid(x, y)
-surf = ax.plot_surface(X, Y, u[0][:], cmap=cm.viridis)
+
+#Plotting - 3D with z = velocity domain
+def time_plot(t):
+    fig = plt.figure(figsize=(11, 7), dpi=100)
+    ax = fig.gca(projection='3d')
+    surf = ax.plot_surface(X, Y, u[t][:], cmap=cm.viridis)
+    plt.show()
