@@ -17,7 +17,7 @@ dy = (y_max - y_min) / (ny-1)
 
 #Create arrays
 x = np.zeros(nx)
-y = np.zeros(nx)
+y = np.zeros(ny)
 p = np.zeros((nt,nx,ny))
 p_temp = np.zeros((nx,ny))
 p_i = np.zeros((nx,ny))

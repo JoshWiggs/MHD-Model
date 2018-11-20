@@ -21,7 +21,7 @@ dt = (t_end - t_initial) / (nt-1)
 
 #Create arrays
 x = np.zeros(nx)
-y = np.zeros(nx)
+y = np.zeros(ny)
 t = np.zeros(nt)
 u = np.ones((nt,ny,nx))
 u_temp = np.ones((ny,nx))
