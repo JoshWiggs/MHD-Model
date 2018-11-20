@@ -24,7 +24,7 @@ y = np.linspace(y_min,y_max,num=ny)
 
 
 def magnetic_field_2D(nx,ny,x,y):
-        
+
     B_x = np.zeros(nx)
     B_y = np.zeros(ny)
     B_mag = np.zeros((nx,ny))
@@ -42,16 +42,10 @@ def magnetic_field_2D(nx,ny,x,y):
 
             B_mag[i][j] = np.sqrt(B_x[i]**2 + B_x[j]**2)
 
-    X,Y = np.meshgrid(x,y)
-    plt.contourf(X,Y,B_mag)
-    plt.show()
-    
+    return B_x, B_y, B_mag
 
+B_x, B_y, B_mag = magnetic_field_2D(nx,ny,x,y)
 
-magnetic_field_2D(nx,ny,x,y)
-
-
-
-
-
-
+X,Y = np.meshgrid(x,y)
+plt.contourf(X,Y,B_mag)
+plt.show()
