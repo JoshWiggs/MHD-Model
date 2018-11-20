@@ -9,8 +9,8 @@ x_max = 2
 x_min = 0
 y_max = 1
 y_min = 0
-nx = 101
-ny = 101
+nx = 51
+ny = 51
 nt = 100
 dx = (x_max - x_min) / (nx-1)
 dy = (y_max - y_min) / (ny-1)
@@ -28,8 +28,8 @@ x = np.linspace(x_min,x_max,num=nx)
 y = np.linspace(y_min,y_max,num=ny)
 
 # Source
-inp[int(ny / 4), int(nx / 4)]  = 100
-inp[int(3 * ny / 4), int(3 * nx / 4)] = -100
+inp[int(nx / 4), int(ny / 4)]  = 100
+inp[int(3 * nx / 4), int(3 * ny / 4)] = -100
 
 for t in range(nt):
     
@@ -57,5 +57,5 @@ X, Y = np.meshgrid(x, y)
 def sur_plot(r):
     fig = plt.figure(figsize=(11, 7), dpi=100)
     ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(X, Y, r[:], cmap=cm.viridis)
+    surf = ax.plot_surface(X, Y, r, cmap=cm.viridis)
     plt.show()
