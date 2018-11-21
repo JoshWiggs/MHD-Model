@@ -31,6 +31,7 @@ u_i = np.ones((ny,nx))
 v = np.ones((nt,ny,nx))
 v_temp = np.ones((ny,nx))
 v_i = np.ones((ny,nx))
+b = np.zeros_like(u_i)
 
 #Populate dimensional vectors
 x = np.linspace(x_min,x_max,num=nx)
@@ -76,10 +77,10 @@ v_i = v[0].copy()
 
 #Iterate through time over spaital (x,y) domain from IC's
 for n in range(1,nt):
-    
+
     if n % 10 == 0:
         print(n)
-    
+
     u_temp = u_i.copy()
     v_temp = v_i.copy()
     for i in range(1,nx-1):
