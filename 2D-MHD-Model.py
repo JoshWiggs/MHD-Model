@@ -75,6 +75,12 @@ for i in range(10,25):
 u_i = u[0].copy()
 v_i = v[0].copy()
 
+#def pressure_driving_force_2D(b,rho,nx,ny,dt,dx,dy,u_i,v_i):
+#
+#    for i in range(0,nx):
+#        for j in range(0,ny):
+#
+
 #Iterate through time over spaital (x,y) domain from IC's
 for n in range(1,nt):
 
@@ -117,4 +123,6 @@ def time_plot(r,t):
     fig = plt.figure(figsize=(11, 7), dpi=100)
     ax = fig.gca(projection='3d')
     surf = ax.plot_surface(X, Y, r[t][:], cmap=cm.viridis)
+    ax.set_xlabel('$x$')
+    ax.set_ylabel('$y$')
     plt.show()
