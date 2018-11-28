@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+#from poisson_solver import pressure_driving_force_2D
+
 #Set Up
 x_max = 2
 x_min = 0
@@ -17,6 +19,7 @@ mu = 1
 nx = 51
 ny = 51
 nt = 501
+p_nt = 51 #peudo-time for pressure
 dx = (x_max - x_min) / (nx-1)
 dy = (y_max - y_min) / (ny-1)
 dt = (t_end - t_initial) / (nt-1)
@@ -25,13 +28,18 @@ dt = (t_end - t_initial) / (nt-1)
 x = np.zeros(nx)
 y = np.zeros(ny)
 t = np.zeros(nt)
-u = np.ones((nt,ny,nx))
-u_temp = np.ones((ny,nx))
-u_i = np.ones((ny,nx))
-v = np.ones((nt,ny,nx))
-v_temp = np.ones((ny,nx))
-v_i = np.ones((ny,nx))
+u = np.ones((nt,nx,ny))
+u_temp = np.ones((nx,ny))
+u_i = np.ones((nx,ny))
+u_new = np.ones((nx,ny))
+v = np.ones((nt,nx,ny))
+v_temp = np.ones((nx,ny))
+v_i = np.ones((nx,ny))
+v_new = np.ones((nx,ny))
 b = np.zeros_like(u_i)
+p = np.zeros_like(u)
+p_i = np.zeros_like(u_i)
+
 
 #Populate dimensional vectors
 x = np.linspace(x_min,x_max,num=nx)
@@ -72,23 +80,42 @@ for i in range(10,25):
         u[0][i][j] = 2
         v[0][i][j] = 2
 
-u_i = u[0].copy()
-v_i = v[0].copy()
+u_new = u[0].copy()
+v_new = v[0].copy()
 
-#def pressure_driving_force_2D(b,rho,nx,ny,dt,dx,dy,u_i,v_i):
-#
-#    for i in range(0,nx):
-#        for j in range(0,ny):
-#
+
+def pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
+
+    for i in range(1,nx-1):
+        for j in range(1,ny-1):
+
+            b[i][j] = ((rho / dt) * ((u_i[i + 1][j] - u_i[i - 1][j]) / (2 * dx)
+             + (v_i[i][j + 1] - v_i[i][j - 1]) / (2 * dy)))
+
+    for n in range(p_nt):
+        for i in range(1,nx-1):
+            for j in range(1,ny-1):
+
+                p_i[i][j] = (((p_i[i + 1][j] - p_i[i - 1][j]) * dy ** 2  + (p_i[i][j + 1]
+                 - p_i[i][j - 1]) * dx ** 2 + (b[i][j] * dx ** 2 * dy ** 2)) /
+                 (2 * (dx ** 2 + dy ** 2)))
+
+    p_i[0, :] = 0
+    p_i[nx-1, :] = 0
+    p_i[:, 0] = 0
+    p_i[:, ny-1] = 0
+
+    return b, p_i
 
 #Iterate through time over spaital (x,y) domain from IC's
-for n in range(1,nt):
+for n in range(1,101):
 
     if n % 10 == 0:
         print(n)
 
-    u_temp = u_i.copy()
-    v_temp = v_i.copy()
+    u_temp = u_new.copy()
+    v_temp = v_new.copy()
+
     for i in range(1,nx-1):
         for j in range(1,ny-1):
 
@@ -112,8 +139,22 @@ for n in range(1,nt):
               * (BY[i][j] - BY[i][j - 1])) + ((dt / (2 * rho * mu * dy)) *
               (B_mag[i][j] ** 2 - B_mag[i][j - 1] ** 2)))
 
-    u[n] = u_i.copy()
-    v[n] = v_i.copy()
+    b,p_i = pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i)
+
+
+    for i in range(1,nx-1):
+        for j in range(1,nx-1):
+
+            u_new[i][j] = u_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
+            / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+
+            v_new[i][j] = v_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
+            / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+
+
+    u[n] = u_new.copy()
+    v[n] = v_new.copy()
+    p[n] = p_i.copy()
 
 #Meshgrid
 X, Y = np.meshgrid(x, y)
