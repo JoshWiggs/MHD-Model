@@ -18,8 +18,8 @@ rho = 1
 mu = 1
 nx = 51
 ny = 51
-nt = 501
-p_nt = 51 #peudo-time for pressure
+nt = 2001
+p_nt = 101 #peudo-time for pressure
 dx = (x_max - x_min) / (nx-1)
 dy = (y_max - y_min) / (ny-1)
 dt = (t_end - t_initial) / (nt-1)
@@ -56,16 +56,16 @@ def magnetic_field_2D(nx,ny,x,y):
 
     for i in range(0,nx):
 
-        B_x[i] = (2 * y[i])
+        B_x[i] = 0 #(2 * y[i])
 
     for j in range(0,ny):
 
-        B_y[j] = (2 * x[j])
+        B_y[j] =  x[j] #(2 * x[j])
 
     for i in range(0,nx):
         for j in range(0,ny):
 
-            B_mag[i][j] = np.sqrt(B_x[i]**2 + B_x[j]**2)
+            B_mag[i][j] = np.sqrt(B_x[i]**2 + B_y[j]**2)
 
     return B_x, B_y, B_mag
 
@@ -74,15 +74,22 @@ B_x, B_y, B_mag = magnetic_field_2D(nx,ny,x,y)
 BX,BY = np.meshgrid(B_x,B_y)
 
 #IC's
-
+"""
 for i in range(10,25):
     for j in range(10,25):
         u[0][i][j] = 2
         v[0][i][j] = 2
 
+"""
+
+for i in range(0,26):
+     u[0][:][i] = 2 + (2 * y[i])
+     u[0][:][25 + i] = -2 + (-2 * y[25 - i])
+     v[0][:][:] = 0
+
+
 u_new = u[0].copy()
 v_new = v[0].copy()
-
 
 def pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
 
@@ -97,7 +104,7 @@ def pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
             for j in range(1,ny-1):
 
                 p_i[i][j] = (((p_i[i + 1][j] - p_i[i - 1][j]) * dy ** 2  + (p_i[i][j + 1]
-                 - p_i[i][j - 1]) * dx ** 2 + (b[i][j] * dx ** 2 * dy ** 2)) /
+                 - p_i[i][j - 1]) * dx ** 2 - (b[i][j] * dx ** 2 * dy ** 2)) /
                  (2 * (dx ** 2 + dy ** 2)))
 
     p_i[0, :] = 0

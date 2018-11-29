@@ -28,7 +28,7 @@ def GGG_plots(X,Y,B_mag,u,v,p,t):
     ax1.title('$t$ = ' + str(t))
 
     ax2 = fig.add_subplot(gs[1, 0])
-    ax2.contourf(X,Y,p[t])
+    ax2.contourf(X,Y,p[t],cmap=cm.seismic)
     fig.colorbar(label = '$p$')
     ax2.xlabel('$x$')
     ax2.ylabel('$y$')
