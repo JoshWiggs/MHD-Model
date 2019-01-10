@@ -13,7 +13,7 @@ y_max = 2
 y_min = 0
 t_initial = 0
 t_end = .5
-vis = 0.0000001 #0.001
+vis = 0.000000001 #0.001
 rho = 100000 #1
 mu = 0.0001 #1
 nx = 51
@@ -93,6 +93,9 @@ for i in range(0,26):
          else:
              xi[i] = -0.5
 
+     xi[0] = 0
+     xi[50] = 0
+
      v[0][:][:] = 0
      v[0][:][25] = xi
      v[0][:][26] = xi
@@ -124,7 +127,7 @@ def pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
     return b, p_i
 
 #Iterate through time over spaital (x,y) domain from IC's
-for n in range(1,151):
+for n in range(1,271):
 
     if n % 10 == 0:
         print(n)
