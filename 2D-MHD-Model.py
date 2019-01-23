@@ -34,7 +34,7 @@ def pressure_driving_force_2D(rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
     for i in range(1,nx-1):
         for j in range(1,ny-1):
 
-            b[i][j] = ((rho / dt) * ((u_i[i + 1][j] - u_i[i - 1][j]) / (2 * dx)
+            b[i][j] = -1 * ((rho / dt) * ((u_i[i + 1][j] - u_i[i - 1][j]) / (2 * dx)
              + (v_i[i][j + 1] - v_i[i][j - 1]) / (2 * dy)))
 
     for n in range(p_nt):
@@ -131,17 +131,18 @@ dt = (t_end - t_initial) / (nt-1)
 #Control size of perturbation down interface
 amp = 2
 freq = 2
+
 #Control actual number of time steps simulation runs over
-sim_t = 501
+sim_t = 376
 
 #Create arrays
 x = np.zeros(nx)
 y = np.zeros(ny)
 t = np.zeros(nt)
-u = np.ones((sim_t,nx,ny))
-u_temp = np.ones((nx,ny))
-u_i = np.ones((nx,ny))
-u_new = np.ones((nx,ny))
+u = np.zeros((sim_t,nx,ny))
+u_temp = np.zeros((nx,ny))
+u_i = np.zeros((nx,ny))
+u_new = np.zeros((nx,ny))
 v = np.zeros((sim_t,nx,ny))
 v_temp = np.zeros((nx,ny))
 v_i = np.zeros((nx,ny))
@@ -186,6 +187,8 @@ for i in range(0,51):
 
 u_i = u[0].copy()
 v_i = v[0].copy()
+u_new = u[0].copy()
+v_new = v[0].copy()
 
 #Iterate through time over spaital (x,y) domain from IC's
 for n in range(1,sim_t):
@@ -235,20 +238,20 @@ for n in range(1,sim_t):
             u_i[i][j] = u_i[i][j] + u_conv[i][j] + u_diff[i][j]
             v_i[i][j] = v_i[i][j] + v_conv[i][j] + v_diff[i][j]
 
-    #b,p_i = pressure_driving_force_2D(b,p_i,rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i)
+    b,p_i = pressure_driving_force_2D(rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i)
 
-    #for i in range(1,nx-1):
-        #for j in range(1,nx-1):
+    for i in range(1,nx-1):
+        for j in range(1,nx-1):
 
-            #u_new[i][j] = u_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
-            #/ 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+            u_new[i][j] = u_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
+            / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
 
-            #v_new[i][j] = v_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
-            #/ 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+            v_new[i][j] = v_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
+            / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
 
-    u[n] = u_i.copy()
-    v[n] = v_i.copy()
-    #p[n] = p_i.copy()
+    u[n] = u_new.copy()
+    v[n] = v_new.copy()
+    p[n] = p_i.copy()
 
 for n in range(0,sim_t):
     for i in range(0,nx):
