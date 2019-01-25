@@ -5,6 +5,18 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from decimal import *
 
+#Options
+class options:
+
+    def __init__(self):
+        self.IncludeConvection = bool(True)
+        self.IncludeDiffusion = bool(True)
+        self.IncludeMagnetism = bool(False)
+        self.CalculatePressure = bool(False)
+        self.CalculateVelocityMagnitude = bool(False)
+
+opt = options()
+
 #Get filename
 filename = os.path.basename(__file__)
 filename = filename.split('.')[0]
@@ -17,11 +29,11 @@ def magnetic_field_2D(nx,ny,x,y):
 
     for i in range(0,nx):
 
-        B_x[i] = 0
+        B_x[i] = y[i]
 
     for j in range(0,ny):
 
-        B_y[j] = 0
+        B_y[j] = x[j]
 
     for i in range(0,nx):
         for j in range(0,ny):
@@ -32,27 +44,28 @@ def magnetic_field_2D(nx,ny,x,y):
 
 def pressure_driving_force_2D(rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i):
 
-    b = np.zeros((nx,ny))
     p_i = np.zeros((nx,ny))
 
-    for i in range(1,nx-1):
-        for j in range(1,ny-1):
-
-            b[i][j] = -1 * ((rho / dt) * ((u_i[i + 1][j] - u_i[i - 1][j]) / (2 * dx)
-             + (v_i[i][j + 1] - v_i[i][j - 1]) / (2 * dy)))
+    b = -1 * ((rho / dt) * ((np.roll(u_i,-1,axis=0) - np.roll(u_i,1,axis=0)) /
+    (2 * dx) + (np.roll(v_i,-1,axis=1) - np.roll(v_i,1,axis=1)) / (2 * dy)))
 
     for n in range(p_nt):
-        for i in range(1,nx-1):
-            for j in range(1,ny-1):
 
-                p_i[i][j] = (((p_i[i + 1][j] - p_i[i - 1][j]) * dy ** 2  + (p_i[i][j + 1]
-                 - p_i[i][j - 1]) * dx ** 2 - (b[i][j] * dx ** 2 * dy ** 2)) /
-                 (2 * (dx ** 2 + dy ** 2)))
+        p_i = (((np.roll(p_i,-1,axis=0) - np.roll(p_i,1,axis=0)) * dy ** 2  +
+        (np.roll(p_i,-1,axis=1) - np.roll(p_i,1,axis=1)) * dx ** 2 -
+        (b * dx ** 2 * dy ** 2)) / (2 * (dx ** 2 + dy ** 2)))
 
-    #p_i[0, :] = 0
-    #p_i[nx-1, :] = 0
-    #p_i[:, 0] = 0
-    #p_i[:, ny-1] = 0
+        p_i[:,0] = 0
+        p_i[:,-1] = 0
+        p_i[0,:] = 0
+        p_i[-1,:] = 0
+
+    # ignore the edges: since the above code will have modified the edge cells, reset them.
+    b[:,0] = 0
+    b[:,-1] = 0
+    b[0,:] = 0
+    b[-1,:] = 0
+
 
     return b, p_i
 
@@ -110,21 +123,19 @@ def magnetic_2D(rho,mu,nx,ny,dt,dx,dy,BX,BY,B_mag):
 
     v_mag = (((BX * dt) / (rho * mu * dx)) * (BY - np.roll(BY,1,axis=0))) +(((BY * dt) / (rho * mu * dy)) * (BY - np.roll(BY,1,axis=1))) + ((dt /(2 * rho * mu * dy)) * ((B_mag) ** 2 - (np.roll(B_mag,1,axis=1)) ** 2))
 
+    # ignore the edges: since the above code will have modified the edge cells, reset them.
+    u_mag[:,0] = 0
+    u_mag[:,-1] = 0
+    u_mag[0,:] = 0
+    u_mag[-1,:] = 0
+    v_mag[:,0] = 0
+    v_mag[:,-1] = 0
+    v_mag[0,:] = 0
+    v_mag[-1,:] = 0
+
     return u_mag, v_mag
 
 #from poisson_solver import pressure_driving_force_2D
-
-#Options
-class options:
-
-    def __init__(self):
-        self.IncludeConvection = bool(True)
-        self.IncludeDiffusion = bool(True)
-        self.IncludeMagnetism = bool(False)
-        self.CalculatePressure = bool(False)
-        self.CalculateVelocityMagnitude = bool(False)
-
-opt = options()
 
 #Set Up
 x_max = 2
@@ -139,7 +150,6 @@ mu = 1 #1
 nx = 101
 ny = 101
 nt = 5001
-p_nt = 101 #peudo-time for pressure
 dx = (x_max - x_min) / (nx-1)
 dy = (y_max - y_min) / (ny-1)
 dt = (t_end - t_initial) / (nt-1)
@@ -150,7 +160,7 @@ amp = 2
 freq = 2
 
 #Control actual number of time steps simulation runs over
-sim_t = 1001
+sim_t = 2001
 
 #Create arrays
 x = np.zeros(nx)
@@ -159,13 +169,21 @@ t = np.zeros(nt)
 u = np.zeros((sim_t,nx,ny))
 u_temp = np.zeros((nx,ny))
 u_i = np.zeros((nx,ny))
-u_new = np.zeros((nx,ny))
 v = np.zeros((sim_t,nx,ny))
 v_temp = np.zeros((nx,ny))
 v_i = np.zeros((nx,ny))
-v_new = np.zeros((nx,ny))
-U = np.zeros((sim_t,nx,ny))
-#p = np.zeros((sim_t,nx,ny))
+
+
+#Open variable for velocity magnitude if CalculateVelocityMagnitude option is on
+if opt.CalculateVelocityMagnitude is True:
+    U = np.zeros((sim_t,nx,ny))
+
+#Open variables for pressure if CalculatePressure option is on
+if opt.CalculatePressure is True:
+    u_new = np.zeros((nx,ny))
+    v_new = np.zeros((nx,ny))
+    p_nt = 101 #peudo-time for pressure
+    p = np.zeros((sim_t,nx,ny))
 
 #Populate dimensional vectors
 x = np.linspace(x_min,x_max,num=nx)
@@ -204,8 +222,10 @@ for i in range(0,51):
 u_i = u[0].copy()
 v_i = v[0].copy()
 
-u_new = u[0].copy()
-v_new = v[0].copy()
+#Set initial conditions in additional velocity variables in CalculatePressure option is on
+if opt.CalculatePressure is True:
+    u_new = u[0].copy()
+    v_new = v[0].copy()
 
 #Meshgrid
 X, Y = np.meshgrid(x, y)
@@ -277,14 +297,24 @@ for n in range(1,sim_t):
     if opt.CalculatePressure is True:
         b,p_i = pressure_driving_force_2D(rho,nx,ny,p_nt,dt,dx,dy,u_i,v_i)
 
-        for i in range(1,nx-1):
-            for j in range(1,nx-1):
+        u_new = u_i - dt / rho * ((np.roll(p_i,-1,axis=0) - np.roll(p_i,1,axis=0))
+        / 2 * dx + (np.roll(p_i,-1,axis=1) - np.roll(p_i,1,axis=1)) / 2 * dy)
 
-                u_new[i][j] = u_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
-                / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+        v_new = v_i - dt / rho * ((np.roll(p_i,-1,axis=0) - np.roll(p_i,1,axis=0))
+        / 2 * dx + (np.roll(p_i,-1,axis=1) - np.roll(p_i,1,axis=1)) / 2 * dy)
 
-                v_new[i][j] = v_i[i][j] - dt / rho * ((p_i[i + 1][j] - p_i[i - 1][j])
-                / 2 * dx + (p_i[i][j + 1] - p_i[i][j - 1]) / 2 * dy)
+        if n % 100==0:
+
+            plt.clf()
+            plt.subplot(2,1,1)
+            plt.title('$t$ = ' + str(n/(nt-1)))
+            plt.streamplot(X,Y,u_i,v_i)
+            plt.subplot(2,1,2)
+            plt.title('$t$ = ' + str(n/(nt-1)))
+            plt.contourf(X,Y,p_i,cmap=cm.seismic)
+            plt.colorbar(label = '$p$')
+            plt.draw()
+            plt.pause(0.001)
 
         u[n] = u_new.copy()
         v[n] = v_new.copy()
@@ -292,17 +322,19 @@ for n in range(1,sim_t):
 
     else:
 
+        if n % 100==0:
+
+            plt.clf()
+            plt.streamplot(X,Y,u_i,v_i)
+            plt.title('$t$ = ' + str(n/(nt-1)))
+            plt.draw()
+            plt.pause(0.001)
+
         u[n] = u_i.copy()
         v[n] = v_i.copy()
 
     # CHRIS: Do a visual update every 100 timesteps
-    if n % 100==0:
 
-        plt.clf()
-        plt.streamplot(X,Y,u_i,v_i)
-        plt.title('$t$ = ' + str(n/(nt-1)))
-        plt.draw()
-        plt.pause(0.001)
 
 if opt.CalculateVelocityMagnitude is True:
     # CHRIS: VECTORISED
