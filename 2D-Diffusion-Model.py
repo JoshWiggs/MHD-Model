@@ -29,11 +29,15 @@ u_i = np.ones((ny,nx))
 v = np.ones((nt,ny,nx))
 v_temp = np.ones((ny,nx))
 v_i = np.ones((ny,nx))
+u_mag = np.zeros((ny,nx))
 
 #Populate dimensional vectors
 x = np.linspace(x_min,x_max,num=nx)
 y = np.linspace(y_min,y_max,num=ny)
 t = np.linspace(t_initial,t_end,num=nt)
+
+#Meshgrid
+X, Y = np.meshgrid(x, y)
 
 #IC's
 
@@ -63,17 +67,25 @@ for n in range(1,nt):
             (((vis * dt) / dy ** 2) * (v_temp[i][j + 1] - (2 * v_temp[i][j])
             + v_temp[i][j - 1])))
 
-            #u_temp[0, :] = 1
-            #u_temp[-1, :] = 1
-            #u_temp[:, 0] = 1
-            #u_temp[:, -1] = 1
+            u_temp[0, :] = 1
+            u_temp[-1, :] = 1
+            u_temp[:, 0] = 1
+            u_temp[:, -1] = 1
 
+            v_temp[0, :] = 1
+            v_temp[-1, :] = 1
+            v_temp[:, 0] = 1
+            v_temp[:, -1] = 1
+
+            u_mag[i][j] = np.sqrt((u_i[i][j]**2)+(v_i[i][j]**2))
 
     u[n] = u_i.copy()
     v[n] = v_i.copy()
 
-#Meshgrid
-X, Y = np.meshgrid(x, y)
+    plt.clf()
+    plt.contourf(X,Y,u_mag)
+    plt.draw()
+    plt.pause(0.001)
 
 #Plotting - 3D with z = velocity domain
 def time_plot(t):
